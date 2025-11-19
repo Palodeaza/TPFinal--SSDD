@@ -10,7 +10,7 @@ interface PomodoroTimerProps {
 }
 
 export function PomodoroTimer({ routineName }: PomodoroTimerProps) {
-  const [minutes, setMinutes] = useState(25)
+  const [minutes, setMinutes] = useState(1)
   const [seconds, setSeconds] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
   const [isBreak, setIsBreak] = useState(false)
@@ -27,7 +27,7 @@ export function PomodoroTimer({ routineName }: PomodoroTimerProps) {
             if (!isBreak) {
               // Cambiar a descanso
               setIsBreak(true)
-              setMinutes(5)
+              setMinutes(1)
               setSeconds(0)
             } else {
               // Volver a trabajo
