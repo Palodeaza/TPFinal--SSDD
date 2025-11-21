@@ -7,63 +7,77 @@ import { Play, Pause, RotateCcw } from 'lucide-react'
 
 interface PomodoroTimerProps {
   routineName: string
+  workDuration: number // en minutos
+  breakDuration: number // en minutos
 }
 
-export function PomodoroTimer({ routineName }: PomodoroTimerProps) {
-  const [minutes, setMinutes] = useState(1)
-  const [seconds, setSeconds] = useState(0)
+export function PomodoroTimer({
+  routineName,
+  workDuration,
+  breakDuration,
+}: PomodoroTimerProps) {
   const [isRunning, setIsRunning] = useState(false)
   const [isBreak, setIsBreak] = useState(false)
+  const [remainingSeconds, setRemainingSeconds] = useState(
+    workDuration * 60
+  )
+
+  // Reiniciar cuando cambia la rutina o sus duraciones
+  useEffect(() => {
+    setIsRunning(false)
+    setIsBreak(false)
+    setRemainingSeconds(workDuration * 60)
+  }, [routineName, workDuration, breakDuration])
 
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null
+    if (!isRunning) return
 
-    if (isRunning) {
-      interval = setInterval(() => {
-        if (seconds === 0) {
-          if (minutes === 0) {
-            // Timer completado
-            setIsRunning(false)
-            if (!isBreak) {
-              // Cambiar a descanso
-              setIsBreak(true)
-              setMinutes(1)
-              setSeconds(0)
-            } else {
-              // Volver a trabajo
-              setIsBreak(false)
-              setMinutes(25)
-              setSeconds(0)
-            }
-          } else {
-            setMinutes(minutes - 1)
-            setSeconds(59)
-          }
-        } else {
-          setSeconds(seconds - 1)
+    const interval = setInterval(() => {
+      setRemainingSeconds((prev) => {
+        // Se terminó la fase actual
+        if (prev <= 1) {
+          const nextIsBreak = !isBreak
+          setIsBreak(nextIsBreak)
+
+          const nextDurationMinutes = nextIsBreak
+            ? breakDuration
+            : workDuration
+
+          // Arranca EXACTAMENTE en X:00
+          return nextDurationMinutes * 60
         }
-      }, 1000)
-    }
 
-    return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [isRunning, minutes, seconds, isBreak])
+        // Seguir descontando normalmente
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [isRunning, isBreak, workDuration, breakDuration])
 
   const toggleTimer = () => {
-    setIsRunning(!isRunning)
+    setIsRunning((r) => !r)
   }
 
   const resetTimer = () => {
     setIsRunning(false)
     setIsBreak(false)
-    setMinutes(25)
-    setSeconds(0)
+    setRemainingSeconds(workDuration * 60)
   }
 
-  const formatTime = (mins: number, secs: number) => {
-    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
-  }
+  const minutes = Math.floor(remainingSeconds / 60)
+  const seconds = remainingSeconds % 60
+
+  const formatTime = (mins: number, secs: number) =>
+    `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+
+  const totalSecondsCurrentPhase =
+    (isBreak ? breakDuration : workDuration) * 60
+
+  const progressRatio =
+    totalSecondsCurrentPhase > 0
+      ? remainingSeconds / totalSecondsCurrentPhase
+      : 0
 
   return (
     <Card className="w-full max-w-lg p-12 bg-card/50 backdrop-blur-sm border-2">
@@ -80,7 +94,6 @@ export function PomodoroTimer({ routineName }: PomodoroTimerProps) {
 
         {/* Timer circular */}
         <div className="relative w-80 h-80">
-          {/* Círculo de progreso */}
           <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
             <circle
               cx="50"
@@ -100,7 +113,7 @@ export function PomodoroTimer({ routineName }: PomodoroTimerProps) {
               strokeWidth="2"
               strokeDasharray={`${2 * Math.PI * 45}`}
               strokeDashoffset={`${
-                2 * Math.PI * 45 * (1 - ((minutes * 60 + seconds) / ((isBreak ? 5 : 25) * 60)))
+                2 * Math.PI * 45 * (1 - progressRatio)
               }`}
               className={isBreak ? 'text-accent' : 'text-primary'}
               strokeLinecap="round"
@@ -159,7 +172,9 @@ export function PomodoroTimer({ routineName }: PomodoroTimerProps) {
           </div>
           <div className="w-px bg-border" />
           <div>
-            <div className="text-2xl font-bold text-foreground">25</div>
+            <div className="text-2xl font-bold text-foreground">
+              {workDuration}
+            </div>
             <div className="text-sm text-muted-foreground">min por sesión</div>
           </div>
         </div>
