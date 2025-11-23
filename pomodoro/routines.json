@@ -1,24 +1,13 @@
 [
   {
-    "id": "1763853413168",
-    "name": "a",
+    "id": "1763923647623",
+    "name": "hola",
     "workDuration": 25,
     "breakDuration": 5,
     "cycles": 4,
     "image": "",
     "category": "",
     "description": "",
-    "createdAt": "2025-11-22T23:16:53.173Z"
-  },
-  {
-    "id": "1763853416073",
-    "name": "b",
-    "workDuration": 25,
-    "breakDuration": 5,
-    "cycles": 4,
-    "image": "",
-    "category": "",
-    "description": "",
-    "createdAt": "2025-11-22T23:16:56.078Z"
+    "createdAt": "2025-11-23T18:47:27.624Z"
   }
 ]
