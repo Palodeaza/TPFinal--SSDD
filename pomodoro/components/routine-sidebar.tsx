@@ -12,21 +12,20 @@ import { useRoutines } from "@/hooks/useRoutines";
 import { exportRoutinesUrl } from "@/services/routines.service";
 
 interface RoutineSidebarProps {
-  currentRoutine: any;       // antes era string
+  currentRoutine: any;
   onSelectRoutine: (routine: any) => void;
 }
 
 export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSidebarProps) {
   const { routines, loading, add, remove, overwriteImport } = useRoutines();
 
-  // new routine modal state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newRoutineName, setNewRoutineName] = useState("");
   const [newWorkDuration, setNewWorkDuration] = useState("25");
   const [newBreakDuration, setNewBreakDuration] = useState("5");
-  const [importing, setImporting] = useState(false);
+  const [newCycles, setNewCycles] = useState("4");
 
-  // ref for file import
+  const [importing, setImporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleCreateRoutine = async () => {
@@ -35,11 +34,12 @@ export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSideb
       name: newRoutineName.trim(),
       workDuration: Number(newWorkDuration) || 25,
       breakDuration: Number(newBreakDuration) || 5,
-      cycles: 1,
+      cycles: Number(newCycles) || 1,
     });
     setNewRoutineName("");
     setNewWorkDuration("25");
     setNewBreakDuration("5");
+    setNewCycles("4");
     setIsDialogOpen(false);
   };
 
@@ -78,14 +78,16 @@ export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSideb
 
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-2">
-          {loading ? <div>Loading...</div> : (
+          {loading ? (
+            <div>Loading...</div>
+          ) : (
             routines.map((routine: any) => (
               <div
                 key={routine.id}
                 className={`group relative rounded-lg transition-colors ${
-                currentRoutine?.name === routine.name
-                  ? "bg-sidebar-accent"
-                  : "hover:bg-sidebar-accent/50"
+                  currentRoutine?.name === routine.name
+                    ? "bg-sidebar-accent"
+                    : "hover:bg-sidebar-accent/50"
                 }`}
               >
                 <button
@@ -93,15 +95,13 @@ export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSideb
                   className="w-full text-left p-4 pr-12"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="mt-0.5">
-                      <Clock className="w-5 h-5 text-sidebar-primary" />
-                    </div>
+                    <Clock className="w-5 h-5 text-sidebar-primary mt-0.5" />
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-sidebar-foreground mb-1">
                         {routine.name}
                       </div>
                       <div className="text-sm text-sidebar-foreground/60">
-                        {routine.workDuration} min trabajo · {routine.breakDuration} min descanso
+                        {routine.workDuration} min trabajo · {routine.breakDuration} min descanso · {routine.cycles} ciclos
                       </div>
                     </div>
                   </div>
@@ -119,19 +119,21 @@ export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSideb
         </div>
       </ScrollArea>
 
-      <div className="p-4 border-t border-sidebar-border space-y-2">
-        <div className="flex gap-2">
+      {/* 📌 Botones reorganizados verticalmente, full width */}
+      <div className="p-4 border-t border-sidebar-border space-y-3">
+        <div className="flex flex-col gap-3">
 
           {/* Nueva rutina */}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button
-                className="flex-1 bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground"
+                className="w-full bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground"
                 size="lg"
               >
                 <Plus className="w-5 h-5 mr-2" /> Nueva Rutina
               </Button>
             </DialogTrigger>
+
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Crear Nueva Rutina</DialogTitle>
@@ -154,7 +156,6 @@ export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSideb
                     <Input
                       id="work-duration"
                       type="number"
-                      placeholder="25"
                       value={newWorkDuration}
                       onChange={(e) => setNewWorkDuration(e.target.value)}
                     />
@@ -165,11 +166,20 @@ export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSideb
                     <Input
                       id="break-duration"
                       type="number"
-                      placeholder="5"
                       value={newBreakDuration}
                       onChange={(e) => setNewBreakDuration(e.target.value)}
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="routine-cycles">Cantidad de ciclos</Label>
+                  <Input
+                    id="routine-cycles"
+                    type="number"
+                    value={newCycles}
+                    onChange={(e) => setNewCycles(e.target.value)}
+                  />
                 </div>
 
                 <Button onClick={handleCreateRoutine} className="w-full">
@@ -179,7 +189,7 @@ export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSideb
             </DialogContent>
           </Dialog>
 
-          {/* Importar rutinas */}
+          {/* Importar */}
           <input
             ref={fileRef}
             type="file"
@@ -190,21 +200,23 @@ export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSideb
 
           <Button
             variant="outline"
-            className="flex items-center gap-2"
+            className="w-full flex items-center gap-2"
             onClick={() => fileRef.current?.click()}
           >
             <Upload className="w-4 h-4" />
             Importar
           </Button>
 
-          {/* Exportar rutinas */}
+          {/* Exportar */}
           <Button
             variant="outline"
+            className="w-full flex items-center gap-2"
             onClick={handleExport}
-            className="flex items-center gap-2"
           >
-            <Download className="w-4 h-4" /> Exportar
+            <Download className="w-4 h-4" />
+            Exportar
           </Button>
+
         </div>
       </div>
     </aside>

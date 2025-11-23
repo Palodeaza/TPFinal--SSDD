@@ -24,6 +24,7 @@ export default function Home() {
           routineName={currentRoutine.name}
           workDuration={currentRoutine.workDuration}
           breakDuration={currentRoutine.breakDuration}
+          cycles={currentRoutine.cycles}
         />
       </main>
     </div>

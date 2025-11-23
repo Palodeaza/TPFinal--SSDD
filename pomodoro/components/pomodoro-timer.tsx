@@ -1,92 +1,107 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Play, Pause, RotateCcw } from 'lucide-react'
 
 interface PomodoroTimerProps {
   routineName: string
-  workDuration: number // en minutos
-  breakDuration: number // en minutos
+  workDuration: number
+  breakDuration: number
+  cycles: number
 }
 
 export function PomodoroTimer({
   routineName,
   workDuration,
   breakDuration,
+  cycles
 }: PomodoroTimerProps) {
   const [isRunning, setIsRunning] = useState(false)
   const [isBreak, setIsBreak] = useState(false)
-  const [remainingSeconds, setRemainingSeconds] = useState(
-    workDuration * 60
-  )
+  const [currentCycle, setCurrentCycle] = useState(1)
+  const [remainingSeconds, setRemainingSeconds] = useState(workDuration * 60)
 
-  // Reiniciar cuando cambia la rutina o sus duraciones
+  const lastPhaseChange = useRef(false)
+
+  // Reiniciar cuando cambia la rutina
   useEffect(() => {
     setIsRunning(false)
     setIsBreak(false)
+    setCurrentCycle(1)
     setRemainingSeconds(workDuration * 60)
   }, [routineName, workDuration, breakDuration])
 
+  // Timer principal
   useEffect(() => {
     if (!isRunning) return
 
     const interval = setInterval(() => {
-      setRemainingSeconds((prev) => {
-        // Se terminó la fase actual
-        if (prev <= 1) {
-          const nextIsBreak = !isBreak
+      setRemainingSeconds(prev => {
+        if (prev > 1) return prev - 1
+
+        // Prev == 1 → cambio de fase
+        const nextIsBreak = !isBreak
+
+        // Evitar que esta transición se ejecute dos veces
+        if (!lastPhaseChange.current) {
+          lastPhaseChange.current = true
+
+          // FIN DE DESCANSO → vuelve a trabajo → suma ciclo
+          if (isBreak && !nextIsBreak) {
+            setCurrentCycle(c => {
+              const next = c + 1
+              if (next > cycles) {
+                // Sesión completa
+                setIsRunning(false)
+                setIsBreak(false)
+                return 1
+              }
+              return next
+            })
+          }
+
+          // Cambiar fase
           setIsBreak(nextIsBreak)
-
-          const nextDurationMinutes = nextIsBreak
-            ? breakDuration
-            : workDuration
-
-          // Arranca EXACTAMENTE en X:00
-          return nextDurationMinutes * 60
         }
 
-        // Seguir descontando normalmente
-        return prev - 1
+        // Reiniciar contador
+        return (nextIsBreak ? breakDuration : workDuration) * 60
       })
     }, 1000)
 
-    return () => clearInterval(interval)
-  }, [isRunning, isBreak, workDuration, breakDuration])
+    return () => {
+      clearInterval(interval)
+      lastPhaseChange.current = false // reset preventor
+    }
+  }, [isRunning, workDuration, breakDuration, isBreak, cycles])
 
-  const toggleTimer = () => {
-    setIsRunning((r) => !r)
-  }
+  const toggleTimer = () => setIsRunning(r => !r)
 
   const resetTimer = () => {
     setIsRunning(false)
     setIsBreak(false)
+    setCurrentCycle(1)
     setRemainingSeconds(workDuration * 60)
   }
 
   const minutes = Math.floor(remainingSeconds / 60)
   const seconds = remainingSeconds % 60
 
-  const formatTime = (mins: number, secs: number) =>
-    `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+  const formatTime = (m: number, s: number) =>
+    `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 
-  const totalSecondsCurrentPhase =
-    (isBreak ? breakDuration : workDuration) * 60
-
-  const progressRatio =
-    totalSecondsCurrentPhase > 0
-      ? remainingSeconds / totalSecondsCurrentPhase
-      : 0
+  const totalPhaseSeconds = (isBreak ? breakDuration : workDuration) * 60
+  const progressRatio = remainingSeconds / totalPhaseSeconds
 
   return (
     <Card className="w-full max-w-lg p-12 bg-card/50 backdrop-blur-sm border-2">
       <div className="flex flex-col items-center gap-8">
-        {/* Nombre de la rutina */}
+
+        {/* Título */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            {routineName}
-          </h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">{routineName}</h1>
           <p className="text-muted-foreground text-sm">
             {isBreak ? '☕ Tiempo de descanso' : '🎯 Tiempo de trabajo'}
           </p>
@@ -112,9 +127,7 @@ export function PomodoroTimer({
               stroke="currentColor"
               strokeWidth="2"
               strokeDasharray={`${2 * Math.PI * 45}`}
-              strokeDashoffset={`${
-                2 * Math.PI * 45 * (1 - progressRatio)
-              }`}
+              strokeDashoffset={`${2 * Math.PI * 45 * (1 - progressRatio)}`}
               className={isBreak ? 'text-accent' : 'text-primary'}
               strokeLinecap="round"
               style={{ transition: 'stroke-dashoffset 1s linear' }}
@@ -123,10 +136,8 @@ export function PomodoroTimer({
 
           {/* Tiempo */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <div className="font-mono text-7xl font-bold text-foreground tabular-nums">
-                {formatTime(minutes, seconds)}
-              </div>
+            <div className="font-mono text-7xl font-bold text-foreground tabular-nums">
+              {formatTime(minutes, seconds)}
             </div>
           </div>
         </div>
@@ -140,7 +151,6 @@ export function PomodoroTimer({
             className="w-16 h-16 rounded-full"
           >
             <RotateCcw className="w-6 h-6" />
-            <span className="sr-only">Reiniciar</span>
           </Button>
 
           <Button
@@ -151,15 +161,9 @@ export function PomodoroTimer({
             }`}
           >
             {isRunning ? (
-              <>
-                <Pause className="w-8 h-8" />
-                <span className="sr-only">Pausar</span>
-              </>
+              <Pause className="w-8 h-8" />
             ) : (
-              <>
-                <Play className="w-8 h-8 ml-1" />
-                <span className="sr-only">Iniciar</span>
-              </>
+              <Play className="w-8 h-8 ml-1" />
             )}
           </Button>
         </div>
@@ -167,17 +171,16 @@ export function PomodoroTimer({
         {/* Estadísticas */}
         <div className="flex gap-8 text-center">
           <div>
-            <div className="text-2xl font-bold text-foreground">4</div>
-            <div className="text-sm text-muted-foreground">Completados hoy</div>
+            <div className="text-2xl font-bold text-foreground">{currentCycle}</div>
+            <div className="text-sm text-muted-foreground">ciclo actual</div>
           </div>
           <div className="w-px bg-border" />
           <div>
-            <div className="text-2xl font-bold text-foreground">
-              {workDuration}
-            </div>
-            <div className="text-sm text-muted-foreground">min por sesión</div>
+            <div className="text-2xl font-bold text-foreground">{cycles}</div>
+            <div className="text-sm text-muted-foreground">ciclos por sesión</div>
           </div>
         </div>
+
       </div>
     </Card>
   )
