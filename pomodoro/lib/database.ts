@@ -40,6 +40,13 @@ class Database {
     const data = await this.read();
     return data.find((r) => r.id === id);
   }
+  
+  async addMany(items: Routine[]) {
+    const data = await this.read();
+    data.push(...items);
+    await this.write(data);
+    return items.length;
+  }
 
   async create(payload: Omit<Routine, "createdAt">): Promise<Routine> {
     const data = await this.read();

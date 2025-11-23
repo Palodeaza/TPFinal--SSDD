@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     }
 
     const routine = await db.create({
-      id: body.id ?? String(Date.now()),
+      id: body.id ?? crypto.randomUUID(),
       name: String(body.name),
       workDuration: Number(body.workDuration),
       breakDuration: Number(body.breakDuration),

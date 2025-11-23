@@ -7,15 +7,17 @@ export async function POST(req: Request) {
     const text = await req.text();
     const parsed = JSON.parse(text);
 
-    let arr = parsed;
-    if (parsed && parsed.routines && Array.isArray(parsed.routines)) arr = parsed.routines;
+    let arr = Array.isArray(parsed.routines) ? parsed.routines : parsed;
     if (!Array.isArray(arr)) {
-      return NextResponse.json({ error: "Invalid payload: expected array" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid payload: expected array" },
+        { status: 400 }
+      );
     }
 
-    // Basic validation and normalization: ensure id, name, durations
+    // 1️⃣ Normalización
     const normalized = arr.map((r: any) => ({
-      id: r.id ?? String(Date.now() + Math.floor(Math.random() * 10000)),
+      id: r.id ?? crypto.randomUUID(),
       name: String(r.name ?? "Sin nombre"),
       workDuration: Number(r.workDuration ?? 25),
       breakDuration: Number(r.breakDuration ?? 5),
@@ -26,8 +28,10 @@ export async function POST(req: Request) {
       createdAt: r.createdAt ?? new Date().toISOString(),
     }));
 
-    await db.overwrite(normalized);
-    return NextResponse.json({ success: true });
+    // 2️⃣ Delegar responsabilidad a la DB
+    const addedCount = await db.addMany(normalized);
+
+    return NextResponse.json({ success: true, added: addedCount });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Error importing file" }, { status: 500 });

@@ -7,15 +7,15 @@ async function getIdFromContext(context: any) {
   const params = context?.params instanceof Promise ? await context.params : context?.params;
   return params?.id;
 }
-
+/*
 export async function GET(_: Request, context: any) {
   const id = await getIdFromContext(context);
   const item = await db.getById(id);
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json(item);
 }
-
-export async function PUT(req: Request, context: any) {
+*/
+/*export async function PUT(req: Request, context: any) {
   try {
     const id = await getIdFromContext(context);
     const updates = await req.json();
@@ -26,7 +26,7 @@ export async function PUT(req: Request, context: any) {
     return NextResponse.json({ error: "Error updating" }, { status: 500 });
   }
 }
-
+*/
 export async function DELETE(_: Request, context: any) {
   const id = await getIdFromContext(context);
   const ok = await db.delete(String(id));

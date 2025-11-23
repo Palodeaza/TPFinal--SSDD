@@ -24,8 +24,8 @@ export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSideb
   const [newWorkDuration, setNewWorkDuration] = useState("25");
   const [newBreakDuration, setNewBreakDuration] = useState("5");
   const [newCycles, setNewCycles] = useState("4");
-
   const [importing, setImporting] = useState(false);
+  
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleCreateRoutine = async () => {
