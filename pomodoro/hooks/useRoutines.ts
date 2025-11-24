@@ -1,4 +1,4 @@
-// hooks/useRoutines.ts
+
 import { useEffect, useState } from "react";
 import * as service from "@/services/routines.service";
 

@@ -1,4 +1,4 @@
-// app/api/routines/route.ts
+
 import { NextResponse } from "next/server";
 import { db } from "@/lib/database";
 
@@ -14,7 +14,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    // basic validation
+    
     if (!body.name || !body.workDuration || !body.breakDuration) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }

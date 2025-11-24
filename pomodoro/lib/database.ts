@@ -1,5 +1,3 @@
-//estoy viendo si se me guardan cambios (lit no hice nada)
-// lib/database.ts
 import fs from "fs/promises";
 import path from "path";
 

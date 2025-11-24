@@ -1,4 +1,3 @@
-// app/api/routines/export/route.ts
 import { NextResponse } from "next/server";
 import { db } from "@/lib/database";
 

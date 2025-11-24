@@ -1,4 +1,3 @@
-// app/api/routines/import/route.ts
 import { NextResponse } from "next/server";
 import { db } from "@/lib/database";
 
@@ -15,7 +14,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1️⃣ Normalización
+    
     const normalized = arr.map((r: any) => ({
       id: r.id ?? crypto.randomUUID(),
       name: String(r.name ?? "Sin nombre"),
@@ -28,7 +27,7 @@ export async function POST(req: Request) {
       createdAt: r.createdAt ?? new Date().toISOString(),
     }));
 
-    // 2️⃣ Delegar responsabilidad a la DB
+    
     const addedCount = await db.addMany(normalized);
 
     return NextResponse.json({ success: true, added: addedCount });

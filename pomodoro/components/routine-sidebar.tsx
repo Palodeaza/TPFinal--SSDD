@@ -1,7 +1,6 @@
-// components/routines/routine-sidebar.tsx
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus, Clock, Trash2, Upload, Download } from "lucide-react";
@@ -27,6 +26,24 @@ export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSideb
   const [importing, setImporting] = useState(false);
   
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const limpiarInputs = (value: string) => {
+    const cleanead = value.replace(/[^\d]/g, "");
+    return cleanead;
+  }
+
+  //validacion del formulario para mostrar un mensaje de error
+  const isFormValid = useMemo(() => {
+    if (!newRoutineName.trim()) return false;
+    const w = Number(newWorkDuration);
+    const b = Number(newBreakDuration);
+    const c = Number(newCycles);
+    if (!Number.isFinite(w) || w <= 0) return false;
+    if (!Number.isFinite(b) || b <= 0) return false;
+    if (!Number.isFinite(c) || c <= 0) return false;
+    return true;
+  }, [newRoutineName, newWorkDuration, newBreakDuration, newCycles]);
+
 
   const handleCreateRoutine = async () => {
     if (!newRoutineName.trim()) return;
@@ -119,11 +136,11 @@ export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSideb
         </div>
       </ScrollArea>
 
-      {/* 📌 Botones reorganizados verticalmente, full width */}
+      {/* botones reorganizados verticalmente, full width */}
       <div className="p-4 border-t border-sidebar-border space-y-3">
         <div className="flex flex-col gap-3">
 
-          {/* Nueva rutina */}
+          {/* nueva rutina */}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button
@@ -156,8 +173,10 @@ export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSideb
                     <Input
                       id="work-duration"
                       type="number"
+                      min={1}
+                      step={1}
                       value={newWorkDuration}
-                      onChange={(e) => setNewWorkDuration(e.target.value)}
+                      onChange={(e) => setNewWorkDuration(limpiarInputs(e.target.value))}
                     />
                   </div>
 
@@ -166,8 +185,10 @@ export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSideb
                     <Input
                       id="break-duration"
                       type="number"
+                      min={1}
+                      step={1}
                       value={newBreakDuration}
-                      onChange={(e) => setNewBreakDuration(e.target.value)}
+                      onChange={(e) => setNewBreakDuration(limpiarInputs(e.target.value))}
                     />
                   </div>
                 </div>
@@ -177,19 +198,28 @@ export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSideb
                   <Input
                     id="routine-cycles"
                     type="number"
+                    min={1}
+                    step={1}
                     value={newCycles}
-                    onChange={(e) => setNewCycles(e.target.value)}
+                    onChange={(e) => setNewCycles(limpiarInputs(e.target.value))}
                   />
                 </div>
+                
+                {/* mensaje simple de validación */}
+                {!isFormValid && (
+                  <div className="text-sm text-destructive">
+                    Por favor completa nombre y números válidos (&gt;= 1).
+                  </div>
+                )}
 
-                <Button onClick={handleCreateRoutine} className="w-full">
+                <Button onClick={handleCreateRoutine} className="w-full" disabled={!isFormValid}>
                   Crear Rutina
                 </Button>
               </div>
             </DialogContent>
           </Dialog>
 
-          {/* Importar */}
+          {/* importar */}
           <input
             ref={fileRef}
             type="file"
@@ -207,7 +237,7 @@ export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSideb
             Importar
           </Button>
 
-          {/* Exportar */}
+          {/* exportar */}
           <Button
             variant="outline"
             className="w-full flex items-center gap-2"

@@ -25,7 +25,7 @@ export function PomodoroTimer({
 
   const lastPhaseChange = useRef(false)
 
-  // Reiniciar cuando cambia la rutina
+  
   useEffect(() => {
     setIsRunning(false)
     setIsBreak(false)
@@ -33,7 +33,7 @@ export function PomodoroTimer({
     setRemainingSeconds(workDuration * 60)
   }, [routineName, workDuration, breakDuration])
 
-  // Timer principal
+  // timer principal
   useEffect(() => {
     if (!isRunning) return
 
@@ -44,7 +44,7 @@ export function PomodoroTimer({
         // Prev == 1 → cambio de fase
         const nextIsBreak = !isBreak
 
-        // Evitar que esta transición se ejecute dos veces
+        
         if (!lastPhaseChange.current) {
           lastPhaseChange.current = true
 
@@ -53,7 +53,7 @@ export function PomodoroTimer({
             setCurrentCycle(c => {
               const next = c + 1
               if (next > cycles) {
-                // Sesión completa
+                // sesión completa
                 setIsRunning(false)
                 setIsBreak(false)
                 return 1
@@ -62,18 +62,18 @@ export function PomodoroTimer({
             })
           }
 
-          // Cambiar fase
+          // cambio a recreo
           setIsBreak(nextIsBreak)
         }
 
-        // Reiniciar contador
+        // reiniciar contador
         return (nextIsBreak ? breakDuration : workDuration) * 60
       })
     }, 1000)
 
     return () => {
       clearInterval(interval)
-      lastPhaseChange.current = false // reset preventor
+      lastPhaseChange.current = false 
     }
   }, [isRunning, workDuration, breakDuration, isBreak, cycles])
 

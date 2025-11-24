@@ -1,9 +1,7 @@
-// app/api/routines/[id]/route.ts
 import { NextResponse } from "next/server";
 import { db } from "@/lib/database";
 
 async function getIdFromContext(context: any) {
-  // context.params may be a Promise in newer Next versions
   const params = context?.params instanceof Promise ? await context.params : context?.params;
   return params?.id;
 }

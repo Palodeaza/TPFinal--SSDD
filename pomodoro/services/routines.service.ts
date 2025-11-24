@@ -1,4 +1,3 @@
-// services/routines.service.ts
 export type RoutinePayload = {
   id?: string;
   name: string;
@@ -56,6 +55,6 @@ export async function importRoutines(body: any) {
 }
 
 export function exportRoutinesUrl() {
-  // frontend can do window.open or create link to this URL
+  
   return "/api/routines/export";
 }
