@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus, Clock, Trash2, Upload, Download } from "lucide-react";
@@ -16,16 +16,21 @@ interface RoutineSidebarProps {
 }
 
 export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSidebarProps) {
-  const { routines, loading, add, remove, overwriteImport } = useRoutines();
+  const { routines, loading, add, remove, overwriteImport, error } = useRoutines();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newRoutineName, setNewRoutineName] = useState("");
+  const [newRoutineName, setNewRoutineName] = useState(""); //seria el estado del timer por defecto si no se selecciona ninguna rutina
   const [newWorkDuration, setNewWorkDuration] = useState("25");
   const [newBreakDuration, setNewBreakDuration] = useState("5");
   const [newCycles, setNewCycles] = useState("4");
   const [importing, setImporting] = useState(false);
   
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!error) return;
+    alert(error);
+  }, [error]);
 
   const limpiarInputs = (value: string) => {
     const cleanead = value.replace(/[^\d]/g, "");
@@ -63,6 +68,7 @@ export function RoutineSidebar({ currentRoutine, onSelectRoutine }: RoutineSideb
   const handleDeleteRoutine = async (id: string) => {
     await remove(id);
   };
+
 
   const handleExport = () => {
     window.open(exportRoutinesUrl(), "_blank");

@@ -27,7 +27,7 @@ export async function createRoutine(payload: RoutinePayload) {
   }
   return res.json();
 }
-
+/*
 export async function updateRoutine(id: string, payload: Partial<RoutinePayload>) {
   const res = await fetch(`/api/routines/${id}`, {
     method: "PUT",
@@ -36,11 +36,10 @@ export async function updateRoutine(id: string, payload: Partial<RoutinePayload>
   });
   if (!res.ok) throw new Error("Error updating");
   return res.json();
-}
-
+}*/
 export async function deleteRoutine(id: string) {
   const res = await fetch(`/api/routines/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Error deleting");
+  if (!res.ok) throw new Error("Error deleting" );
   return res.json();
 }
 

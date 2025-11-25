@@ -14,7 +14,6 @@ export async function POST(req: Request) {
       );
     }
 
-    
     const normalized = arr.map((r: any) => ({
       id: r.id ?? crypto.randomUUID(),
       name: String(r.name ?? "Sin nombre"),
